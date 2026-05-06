@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>中文Ciacceomoc转换器 · 网页版</title>
+    <!-- 拼音库: pinyin-pro 提供多音字和声调拼音 -->
+    <script src="https://unpkg.com/pinyin-pro@3.19.6/dist/index.js"></script>
+    <!-- 轻量级分词辅助库 (基于词典的简易分词，用于提供初始分词建议，用户可手动编辑) -->
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Noto Sans CJK SC', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+        }
+        body {
+            background: #f5f7fb;
+            margin: 0;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .app-container {
+            max-width: 1300px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+        .main-panel {
+            padding: 24px 28px 32px 28px;
+        }
+        h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 1rem 0 0.6rem 0;
+            color: #1e293b;
+            letter-spacing: -0.2px;
+            border-left: 4px solid #3b82f6;
+            padding-left: 12px;
+        }
+        .top-version {
+            text-align: right;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #eef2ff;
+            padding-bottom: 8px;
+        }
+        textarea, .pos-editor {
+            width: 100%;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            background: #fefefe;
+            transition: 0.2s;
+            resize: vertical;
+        }
+        textarea:focus, .pos-editor:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+        }
+        .pos-editor {
+            background: #fafcff;
+            font-family: monospace;
+            line-height: 1.5;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0 8px 0;
+        }
+        .pos-btn {
+            background: #f1f5f9;
+            border: none;
+            border-radius: 40px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #1e293b;
+        }
+        .pos-btn:hover {
+            background: #e2e8f0;
+            transform: scale(0.97);
+        }
+        .poly-area {
+            background: #f8fafc;
+            border-radius: 24px;
+            padding: 12px 16px;
+            border: 1px solid #e2edff;
+            min-height: 110px;
+        }
+        .poly-scroll {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 16px;
+            padding-bottom: 6px;
+        }
+        .poly-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            width: 100px;
+            flex-shrink: 0;
+            text-align: center;
+            padding: 10px 6px;
+            border: 1px solid #eef2ff;
+        }
+        .poly-card select {
+            width: 90%;
+            margin-bottom: 8px;
+            padding: 5px;
+            border-radius: 30px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 12px;
+        }
+        .poly-card .char {
+            font-size: 26px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+        .mode-bar {
+            background: #f1f5f9;
+            border-radius: 48px;
+            padding: 8px 18px;
+            display: inline-flex;
+            gap: 28px;
+            margin: 8px 0 16px 0;
+            flex-wrap: wrap;
+        }
+        .mode-bar label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .output-box {
+            background: #f1f5f9;
+            border-radius: 24px;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            min-height: 180px;
+            border: 1px solid #e2e8f0;
+        }
+        hr {
+            margin: 20px 0;
+            border-color: #eef2ff;
+        }
+        footer {
+            font-size: 11px;
+            text-align: center;
+            color: #94a3b8;
+            padding: 16px 0 8px;
+            border-top: 1px solid #ecf3fa;
+        }
+        button {
+            background: none;
+        }
+        .info-tip {
+            font-size: 12px;
+            color: #475569;
+            margin-top: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="main-panel">
+        <div class="top-version">
+            中文Ciacceomoc转换器 v1.3.5 · 网页版 (GitHub Pages) by Pleastar 2026.5.6
+        </div>
+
+        <!-- 源文本输入区 -->
+        <h3>📝 源文本输入 (汉字/标点)</h3>
+        <textarea id="inputText" rows="2" placeholder="例如：人们高兴地欢呼。"></textarea>
+
+        <!-- 人工分词与词性编辑区 -->
+        <h3>✍️ 人工分词与词性编辑 <span style="font-weight:normal; font-size:12px;">(格式: 词[词性] 例如: 中国[n] 人民[n])</span></h3>
+        <textarea id="posEditor" class="pos-editor" rows="4" placeholder="自动分词结果会显示在此，您可修改词性标签或手动编辑"></textarea>
+
+        <!-- 快捷词性按钮组 -->
+        <div class="btn-group" id="posButtonGroup"></div>
+
+        <!-- 多音字手动选择区 -->
+        <h3>🎵 多音字手动选择区</h3>
+        <div class="poly-area">
+            <div id="polyScroll" class="poly-scroll"></div>
+            <div class="info-tip">💡 点击下拉框可切换该汉字的不同读音，实时影响转换结果。</div>
+        </div>
+
+        <!-- 模式切换栏 -->
+        <div class="mode-bar">
+            <label><input type="radio" name="mode" value="translit" checked> 🎤 音译</label>
+            <label><input type="radio" name="mode" value="transcrip"> ✍️ 转写</label>
+            <span style="width:1px; background:#cbd5e1; margin:0 8px;"></span>
+            <label><input type="radio" name="style" value="simp" checked> 🔤 简体</label>
+            <label><input type="radio" name="style" value="fancy"> 🏛️ 正体</label>
+        </div>
+
+        <!-- 输出结果 -->
+        <h3>✨ 转换结果</h3>
+        <div id="outputDisplay" class="output-box"></div>
+        <footer>⚡ 支持词性后缀、多音字记忆、自动标点处理 | 完全前端实现，基于pinyin-pro + 核心音韵规则</footer>
+    </div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. 映射常量 (从Python完整移植)
+    // --------------------------------------------------------------
+    const POS_LABEL_TO_TAG = { "名": "n", "动": "v", "形": "a", "副": "d", "连": "c", "介": "p", "助": "u", "数": "m", "量": "q", "代": "r", "感": "i", "拟": "o", "其他": "x" };
+    const POS_TAG_TO_LABEL = Object.fromEntries(Object.entries(POS_LABEL_TO_TAG).map(([k,v]) => [v,k]));
+    const POS_SUFFIX = { 'n':'c', 'v':'s', 'a':'m', 'd':'n', 'c':'r', 'p':'r', 'u':'r', 'm':'st', 'q':'sr', 'r':'t', 'x':'' };
+
+    const INITIALS = { 'b':'p', 'd':'t', 'g':'c', 'p':'pp', 't':'tt', 'k':'cc', 'm':'m', 'n':'n', 'z':'sc', 'zh':'cr', 'j':'c', 'c':'cs', 'ch':'tr', 'q':'cc', 'f':'pr', 's':'s', 'sh':'sr', 'x':'s', 'h':'rc', 'l':'r', 'r':'rn' };
+    const FINALS_BASE = { 'a':'a', 'o':'o', 'e':'e', 'i':'i', 'u':'u', 'ü':'ui', 'ai':'ae', 'ei':'ea', 'ao':'au', 'ou':'eo', 'ia':'ia', 'ie':'ie', 'iao':'io', 'iu':'eu', 'iü':'eu', 'ua':'oa', 'uo':'o', 'uai':'oe', 'ui':'oi', 'üe':'ue','ue':'ue', 'an':'an', 'en':'en', 'in':'in', 'un':'un', 'ün':'uon', 'ian':'ean', 'uan':'oen', 'üan':'uan', 'ang':'aon', 'iang':'ian', 'uang':'oan', 'eng':'eon', 'ing':'ien', 'ueng':'on', 'ong':'on', 'iong':'ion', 'er':'er' };
+    const FINALS_234 = { 'a':'am', 'o':'os', 'e':'em', 'i':'im', 'u':'um', 'ü':'om', 'ai':'ec', 'ei':'ic', 'ao':'ac', 'ou':'oc', 'ia':'at', 'ie':'et', 'iao':'ot', 'iu':'ut', 'iü':'ut', 'ua':'as', 'uo':'os', 'uai':'es', 'ui':'us', 'üe':'is', 'ue':'is', 'an':'an', 'en':'en', 'in':'in', 'un':'un', 'ün':'on', 'ian':'ep', 'uan':'op', 'üan':'ip', 'ang':'ar', 'iang':'ap', 'uang':'up', 'eng':'er', 'ing':'ir', 'ueng':'or', 'ong':'or', 'iong':'it', 'er':'ur' };
+    const YW_MAP = { 'ya':'ia', 'ye':'ie', 'yi':'i', 'wu':'u', 'yu':'ü', 'yü':'ü', 'yue':'ue', 'yüe':'üe', 'yao':'iao', 'you':'iu', 'yuan':'üan', 'yüan':'üan', 'yin':'in', 'yun':'ün', 'yün':'ün', 'ying':'ing', 'yong':'iong', 'yan':'ian', 'yang':'iang', 'wa':'ua', 'wo':'uo', 'wai':'uai', 'wei':'ui', 'wan':'uan', 'wen':'un', 'wang':'uang', 'weng':'ueng' };
+
+    // 标点映射
+    const PUNCT_MAP = { '，':',', '。':'.', '！':'!', '？':'?', '：':':', '；':';', '“':'"', '”':'"', '‘':"'", '’':"'", '（':'(', '）':')', '【':'[', '】':']', '—':'-', '…':'...' };
+
+    // 全局记忆
+    let memoryPos = new Map();     // word -> 词性label "名","动"...
+    let memoryPy = new Map();      // char -> 选中的拼音(带声调数字如 "zhong1")
+    let isAutoSyncing = false;
+    let currentSegmenterReady = true;
+
+    // 辅助DOM
+    const inputTextarea = document.getElementById('inputText');
+    const posEditor = document.getElementById('posEditor');
+    const polyScrollDiv = document.getElementById('polyScroll');
+    const outputDiv = document.getElementById('outputDisplay');
+    const modeRadios = document.querySelectorAll('input[name="mode"]');
+    const styleRadios = document.querySelectorAll('input[name="style"]');
+
+    // --------------------------------------------------------------
+    // 简易分词 + 词性初始化 (基于最大匹配 + 简单词库)
+    // 提供初始建议，保留用户记忆词性，确保可用性
+    // --------------------------------------------------------------
+    const simpleDict = new Map([
+        ["中国", "名"], ["人民", "名"], ["共和国", "名"], ["成立", "动"], ["了", "助"], ["人们", "名"], ["高兴", "形"], ["地", "助"], ["欢呼", "动"],
+        ["我们", "代"], ["他们", "代"], ["今天", "名"], ["天气", "名"], ["很", "副"], ["好", "形"], ["伟大", "形"], ["繁荣", "形"], ["发展", "动"],
+        ["科技", "名"], ["创新", "动"], ["智能", "形"], ["时代", "名"], ["梦想", "名"], ["实现", "动"]
+    ]);
+    function simpleSegment(text) {
+        // 正向最大匹配 (词长<=4)
+        let result = [];
+        let i = 0;
+        const len = text.length;
+        while (i < len) {
+            let matched = false;
+            for (let l = Math.min(4, len - i); l >= 1; l--) {
+                const sub = text.substr(i, l);
+                if (simpleDict.has(sub) || l === 1) {
+                    let label = simpleDict.get(sub) || "其他";
+                    if (l === 1 && /[\u4e00-\u9fa5]/.test(sub)) label = "其他";
+                    result.push({ word: sub, label: label });
+                    i += l;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                result.push({ word: text[i], label: "其他" });
+                i++;
+            }
+        }
+        return result;
+    }
+
+    function buildPosEditorFromInput(rawText) {
+        // 全角标点转换 + 标点归一
+        let processed = "";
+        for (let ch of rawText) {
+            processed += PUNCT_MAP[ch] || ch;
+        }
+        // 分词并带上词性 (记忆优先)
+        const segments = simpleSegment(processed);
+        let tokens = [];
+        for (let seg of segments) {
+            if (!/[\u4e00-\u9fa5]/.test(seg.word)) {
+                tokens.push(seg.word);
+                continue;
+            }
+            let label = memoryPos.get(seg.word) || seg.label;
+            if (!POS_LABEL_TO_TAG[label]) label = "其他";
+            tokens.push(`${seg.word}[${label}]`);
+        }
+        let editorContent = tokens.join(" ");
+        // 标点间距规则：移除某些标点前面空白，标点后加空格
+        editorContent = editorContent.replace(/\s+([,.!?:;])/g, '$1');
+        editorContent = editorContent.replace(/\]\s+([,.!?:;])/g, ']$1');
+        editorContent = editorContent.replace(/([,.!?:;])(?!\s|$)/g, '$1 ');
+        return editorContent;
+    }
+
+    // 从posEditor文本提取并记忆词性 (解析 词[词性])
+    function extractAndMemoryPositions(editorText) {
+        const regex = /([\u4e00-\u9fa5]+)\[(.*?)]/g;
+        let match;
+        while ((match = regex.exec(editorText)) !== null) {
+            const word = match[1];
+            const label = match[2];
+            if (POS_LABEL_TO_TAG[label]) memoryPos.set(word, label);
+        }
+    }
+
+    // 刷新多音字卡片 (基于当前posEditor里的所有汉字)
+    async function refreshPolyphones() {
+        const text = posEditor.value;
+        const charsSet = new Set();
+        for (let ch of text) {
+            if (/[\u4e00-\u9fa5]/.test(ch)) charsSet.add(ch);
+        }
+        const uniqueChars = Array.from(charsSet);
+        polyScrollDiv.innerHTML = '';
+        for (let ch of uniqueChars) {
+            // 使用pinyin-pro获取多音字列表 (带声调数字版本, 异读)
+            try {
+                const pinyinResult = window.pinyinPro?.pinyin?.(ch, { toneType: 'num', multiple: true, type: 'array' }) || [];
+                let pyList = pinyinResult.length ? pinyinResult : [window.pinyinPro?.pinyin?.(ch, { toneType: 'num' }) || ch];
+                if (!pyList.length) pyList = [ch];
+                const selected = memoryPy.get(ch) || pyList[0];
+                const card = document.createElement('div');
+                card.className = 'poly-card';
+                const selectEl = document.createElement('select');
+                pyList.forEach(py => {
+                    const opt = document.createElement('option');
+                    opt.value = py;
+                    opt.textContent = py;
+                    if (py === selected) opt.selected = true;
+                    selectEl.appendChild(opt);
+                });
+                const charSpan = document.createElement('div');
+                charSpan.className = 'char';
+                charSpan.textContent = ch;
+                selectEl.addEventListener('change', (e) => {
+                    memoryPy.set(ch, e.target.value);
+                    translate();
+                });
+                card.appendChild(selectEl);
+                card.appendChild(charSpan);
+                polyScrollDiv.appendChild(card);
+            } catch(e) { console.warn(e); }
+        }
+    }
+
+    // 解析拼音字符串 "zhong1" -> {syl:"zhong", tone:1}
+    function parsePinyinStr(pyStr) {
+        const match = pyStr.match(/^([a-zü]+)(\d?)$/);
+        if (!match) return { syl: 'a', tone: 1 };
+        let syl = match[1];
+        let tone = match[2] ? parseInt(match[2]) : 1;
+        // j/q/x/y + u -> ü
+        if ((syl.startsWith('j') || syl.startsWith('q') || syl.startsWith('x')) && syl.includes('u')) syl = syl.replace(/u/g, 'ü');
+        syl = syl.replace(/v/g, 'ü');
+        return { syl, tone };
+    }
+
+    // 核心单字转换 (依据模式、拼音、声调、位置)
+    function applySyllableRule(pyStr, mode, index, prevWordResChars) {
+        if (pyStr === 'srer0') return { res: 'srer', coda: 'sr', nucleus: 'er' };
+        const { syl, tone } = parsePinyinStr(pyStr);
+        let finalSyl = syl;
+        if (YW_MAP[finalSyl]) finalSyl = YW_MAP[finalSyl];
+        // 拆分声母韵母
+        let initial = '';
+        const initList = ['zh','ch','sh','b','p','m','f','d','t','n','l','g','k','h','j','q','x','r','z','c','s'];
+        for (let init of initList) {
+            if (finalSyl.startsWith(init)) { initial = init; break; }
+        }
+        let finalPart = finalSyl.slice(initial.length);
+        // 特殊规则 xi1 -> sei
+        if (initial === 'x' && finalPart === 'i' && tone === 1) {
+            return { res: 'sei', coda: 's', nucleus: 'ei' };
+        }
+        const tInit = INITIALS[initial] || initial || '';
+        const isPureFinal = (initial === '');
+        let tFinal = '';
+        let resSyl = '';
+        let nucleusRaw = '';
+        if (mode === 'translit' || tone === 1 || tone === 0) {
+            tFinal = FINALS_BASE[finalPart] || finalPart;
+            resSyl = tInit + tFinal;
+            nucleusRaw = tFinal;
+        } else { // 转写 2,3,4声
+            tFinal = FINALS_234[finalPart] || finalPart;
+            const vowelTone = {2:'a',3:'o',4:'e'}[tone] || '';
+            if (isPureFinal) {
+                resSyl = vowelTone + tFinal.split('').reverse().join('');
+                nucleusRaw = resSyl;
+            } else {
+                resSyl = tInit + tFinal + vowelTone;
+                nucleusRaw = tFinal + vowelTone;
+            }
+        }
+        // 4a 前缀添加 (pp,tt,cc,rc,rn)
+        const needPrefix = ['pp','tt','cc','rc','rn'].includes(tInit);
+        if (needPrefix && (index === 0 || (prevWordResChars.length && !'aeiouáéíóúü'.includes(prevWordResChars.slice(-1))))) {
+            const prefix = {1:'u',2:'a',3:'o',4:'e',0:'u'}[tone] || 'u';
+            resSyl = prefix + resSyl;
+            nucleusRaw = prefix + nucleusRaw;
+        }
+        return { res: resSyl, coda: tInit, nucleus: nucleusRaw };
+    }
+
+    // 应用一条词的转换 (多字)
+    function convertWord(word, pinyinList, mode) {
+        // 预处理 4c 同字同音处理(仅转写)
+        let processedPys = [...pinyinList];
+        if (mode === 'transcrip' && word.length >= 2) {
+            let newList = [];
+            for (let i=0; i<word.length; i++) {
+                if (i>0 && word[i]===word[i-1] && pinyinList[i]===pinyinList[i-1]) newList.push('srer0');
+                else newList.push(pinyinList[i]);
+            }
+            processedPys = newList;
+        }
+        let result = '';
+        let sylDataList = [];
+        for (let i=0; i<processedPys.length; i++) {
+            const py = processedPys[i];
+            let prevPart = result.slice(-1);
+            const ruleRes = applySyllableRule(py, mode, i, result);
+            let sylStr = ruleRes.res;
+            sylDataList.push({ coda: ruleRes.coda, nucleus: ruleRes.nucleus });
+            result += sylStr;
+        }
+        // 4b 连续重复音节 (C1 V1 C1 V1) 仅转写模式
+        if (mode === 'transcrip') {
+            let changed = true;
+            while (changed) {
+                changed = false;
+                const pattern = /([bcdfghjklmnpqrstvwxyz]+)([aeiou]+)\1\2/;
+                const match = result.match(pattern);
+                if (match) {
+                    const full = match[0];
+                    const c1 = match[1], v1 = match[2];
+                    const endIdx = match.index + full.length;
+                    const nextChars = result.slice(endIdx, endIdx+2);
+                    const replacement = (nextChars === 'pp' || nextChars === 'tt' || nextChars === 'cc' || nextChars === 'rc' || nextChars === 'rn') ? c1+v1+c1+'i' : c1+v1+c1+'u';
+                    result = result.slice(0, match.index) + replacement + result.slice(endIdx);
+                    changed = true;
+                }
+            }
+        }
+        // 4e ii -> iei
+        result = result.replace(/ii/g, 'iei');
+        // 4f 音译特殊首字母规则
+        if (mode === 'translit') {
+            if (result.startsWith('i')) result = 'h' + result;
+            for (let pre of ['ucc','acc','ecc','occ','cc']) {
+                if (result.startsWith(pre)) {
+                    result = pre.replace(/cc/, 'k') + result.slice(pre.length);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    // 主翻译函数
+    async function translate() {
+        const rawText = posEditor.value;
+        if (!rawText.trim()) { outputDiv.innerText = ''; return; }
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const style = document.querySelector('input[name="style"]:checked').value;
+
+        // 切分 tokens: 汉字词[词性] , 其他字符 , 空格
+        const tokenRegex = /([\u4e00-\u9fa5]+)\[(.*?)\]|([^\[\]\s\u4e00-\u9fa5]+)|(\s+)/g;
+        let tokens = [];
+        let match;
+        while ((match = tokenRegex.exec(rawText)) !== null) {
+            if (match[1]) tokens.push({ type: 'word', word: match[1], posLabel: match[2] });
+            else if (match[3]) tokens.push({ type: 'other', text: match[3] });
+            else if (match[4]) tokens.push({ type: 'space', text: match[4] });
+        }
+
+        let finalChunks = [];
+        for (let token of tokens) {
+            if (token.type === 'space') { finalChunks.push(token.text); continue; }
+            if (token.type === 'other') { finalChunks.push(token.text); continue; }
+            // 处理词
+            const word = token.word;
+            const posLabel = token.posLabel;
+            const tag = POS_LABEL_TO_TAG[posLabel] || 'x';
+            const suffix = POS_SUFFIX[tag] || '';
+            // 获取每个字的拼音 (记忆优先)
+            let pinyinList = [];
+            for (let ch of word) {
+                let py = memoryPy.get(ch);
+                if (!py) {
+                    try {
+                        const p = window.pinyinPro?.pinyin?.(ch, { toneType: 'num' }) || ch;
+                        py = p;
+                    } catch(e) { py = ch; }
+                    if (!py) py = ch;
+                }
+                pinyinList.push(py);
+            }
+            let converted = convertWord(word, pinyinList, mode);
+            converted += suffix;
+            finalChunks.push({ str: converted, tag: tag });
+        }
+        // 格式化输出 + 大小写 / 正体风格
+        let outputStr = '';
+        let isNewSentence = true;
+        for (let chunk of finalChunks) {
+            if (typeof chunk === 'string') {
+                outputStr += chunk;
+                if (/[.!?;]/.test(chunk.trim())) isNewSentence = true;
+                continue;
+            }
+            let wordStr = chunk.str;
+            if (style === 'simp') {
+                if (isNewSentence || chunk.tag === 'n') {
+                    wordStr = wordStr.charAt(0).toUpperCase() + wordStr.slice(1).toLowerCase();
+                } else {
+                    wordStr = wordStr.toLowerCase();
+                }
+                isNewSentence = false;
+            }
+            outputStr += wordStr;
+        }
+        if (style === 'fancy') {
+            outputStr = outputStr.toLowerCase();
+            const gMap = { 'i':'ι', 'p':'ρ', 't':'τ', 'h':'ε', 'k':'κ' };
+            for (let [k,v] of Object.entries(gMap)) outputStr = outputStr.replace(new RegExp(k, 'g'), v);
+        }
+        outputDiv.innerText = outputStr || ' ';
+    }
+
+    // 事件: 源文本变化 -> 自动生成pos区域 (带记忆)
+    async function onInputChanged() {
+        if (isAutoSyncing) return;
+        const src = inputTextarea.value;
+        if (!src.trim()) { posEditor.value = ''; refreshPolyphones(); translate(); return; }
+        const newPosContent = buildPosEditorFromInput(src);
+        isAutoSyncing = true;
+        posEditor.value = newPosContent;
+        isAutoSyncing = false;
+        extractAndMemoryPositions(newPosContent);
+        await refreshPolyphones();
+        translate();
+    }
+    // pos编辑器变化
+    async function onPosEditorChanged() {
+        if (isAutoSyncing) return;
+        extractAndMemoryPositions(posEditor.value);
+        await refreshPolyphones();
+        translate();
+    }
+    // 快捷插入词性标签
+    function insertPosTag(labelChar) {
+        const editor = posEditor;
+        const start = editor.selectionStart;
+        const end = editor.selectionEnd;
+        const text = editor.value;
+        const tagToInsert = `[${labelChar}]`;
+        const newText = text.slice(0, start) + tagToInsert + text.slice(end);
+        editor.value = newText;
+        editor.focus();
+        editor.setSelectionRange(start+tagToInsert.length, start+tagToInsert.length);
+        onPosEditorChanged();
+    }
+    // 构建词性按钮
+    function buildPosButtons() {
+        const container = document.getElementById('posButtonGroup');
+        const posNames = ["名词", "动词", "形容词", "代词", "数词", "量词", "副词", "连词", "介词", "助词", "感叹词", "拟声词", "其他"];
+        const shortMap = { "名词":"名","动词":"动","形容词":"形","代词":"代","数词":"数","量词":"量","副词":"副","连词":"连","介词":"介","助词":"助","感叹词":"感","拟声词":"拟","其他":"其他" };
+        posNames.forEach(name => {
+            const btn = document.createElement('button');
+            btn.textContent = name;
+            btn.className = 'pos-btn';
+            const shortTag = shortMap[name];
+            btn.addEventListener('click', (e) => { e.preventDefault(); insertPosTag(shortTag); });
+            container.appendChild(btn);
+        });
+    }
+
+    // 监听模式切换
+    function bindEvents() {
+        inputTextarea.addEventListener('input', onInputChanged);
+        posEditor.addEventListener('input', onPosEditorChanged);
+        modeRadios.forEach(r => r.addEventListener('change', () => translate()));
+        styleRadios.forEach(r => r.addEventListener('change', () => translate()));
+    }
+
+    // 初始化示例文本
+    function setExample() {
+        inputTextarea.value = "人们高兴地欢呼。";
+        onInputChanged(); // 触发自动生成分词&多音字
+    }
+
+    // 等待拼音库加载
+    window.addEventListener('DOMContentLoaded', async () => {
+        buildPosButtons();
+        bindEvents();
+        // 如果pinyin-pro未加载完成则延时
+        if (!window.pinyinPro) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        setExample();
+    });
+</script>
+</body>
+</html>
