@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciacceomoc转换器 v1.6.9 by Pleastar 2026.5.7</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='14' font-size='14'>文</text></svg>">
+    <style>
+        :root {
+            --bg: #f5f5f5;
+            --surface: #ffffff;
+            --border: #d0d0d0;
+            --text: #1a1a1a;
+            --text-secondary: #666;
+            --accent: #0078d7;
+            --accent-hover: #005a9e;
+            --editor-bg: #fafafa;
+            --output-bg: #f0f0f0;
+            --danger: #c0392b;
+            --radius: 6px;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --font-mono: 'SF Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+            --font-sans: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: #e8ecf1;
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1180px;
+            background: var(--surface);
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-header {
+            background: linear-gradient(135deg, #1a3a5c 0%, #1e4d7b 100%);
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .app-header .title {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+        .app-header .subtitle {
+            font-size: 11px;
+            color: #bccfdf;
+            text-align: right;
+        }
+
+        .tabs-nav {
+            display: flex;
+            background: #e9edf2;
+            border-bottom: 2px solid var(--border);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            color: #555;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .tab-btn.active {
+            color: var(--accent);
+            background: var(--surface);
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            border-radius: 3px 3px 0 0;
+        }
+        .tab-btn:hover {
+            color: #333;
+            background: #dfe4ea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 18px 20px 20px;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .tab-content.active {
+            display: flex;
+        }
+
+        .section-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn-row.stretch-btns>* {
+            flex: 1;
+            min-width: 52px;
+        }
+
+        .btn {
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid #c5c9cd;
+            border-radius: var(--radius);
+            cursor: pointer;
+            background: #f7f8fa;
+            color: #333;
+            transition: all 0.12s;
+            white-space: nowrap;
+            text-align: center;
+            user-select: none;
+        }
+        .btn:hover {
+            background: #e8ebef;
+            border-color: #aab0b8;
+        }
+        .btn:active {
+            background: #dde1e6;
+        }
+        .btn.accent {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .btn.accent:hover {
+            background: var(--accent-hover);
+        }
+        .btn.danger {
+            background: #fdf2f2;
+            border-color: #e0b4b4;
+            color: #a03030;
+        }
+        .btn.danger:hover {
+            background: #fbe6e6;
+        }
+        .btn.small {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .text-editor {
+            width: 100%;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px 12px;
+            font-family: var(--font-sans);
+            font-size: 15px;
+            line-height: 1.6;
+            resize: vertical;
+            background: var(--editor-bg);
+            color: #222;
+            min-height: 70px;
+            transition: border-color 0.15s;
+        }
+        .text-editor:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(0, 120, 215, 0.1);
+        }
+        .text-editor.output-area {
+            background: var(--output-bg);
+            font-size: 15px;
+            font-family: var(--font-mono);
+            cursor: default;
+        }
+        .text-editor.h80 {
+            height: 80px;
+            min-height: 80px;
+        }
+        .text-editor.h120 {
+            height: 120px;
+            min-height: 120px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .radio-group input[type="radio"] {
+            accent-color: var(--accent);
+            width: 16px;
+            height: 16px;
+        }
+
+        .ctrl-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 6px 0;
+        }
+
+        .poly-scroll {
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: #fcfcfd;
+            min-height: 100px;
+            max-height: 140px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 8px 10px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            flex-wrap: nowrap;
+        }
+        .poly-card {
+            flex-shrink: 0;
+            width: 80px;
+            background: #fff;
+            border: 1px solid #dde;
+            border-radius: var(--radius);
+            padding: 6px 4px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            box-shadow: var(--shadow);
+        }
+        .poly-card .char-display {
+            font-weight: 700;
+            font-size: 18px;
+            color: #1a3a5c;
+        }
+        .poly-card select {
+            width: 100%;
+            font-size: 12px;
+            padding: 3px 4px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background: #fafbfc;
+            cursor: pointer;
+        }
+        .poly-card select:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .label-fixed {
+            display: inline-block;
+            min-width: 110px;
+            font-weight: 600;
+            font-size: 13px;
+            color: #444;
+            flex-shrink: 0;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid #e0e3e7;
+            margin: 2px 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 4px;
+            }
+            .app-container {
+                border-radius: 6px;
+            }
+            .tab-content {
+                padding: 10px 8px 14px;
+                gap: 10px;
+            }
+            .btn-row.stretch-btns>* {
+                min-width: 42px;
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+            .poly-scroll {
+                max-height: 110px;
+                min-height: 80px;
+            }
+            .poly-card {
+                width: 68px;
+                padding: 4px 2px;
+            }
+            .poly-card .char-display {
+                font-size: 15px;
+            }
+            .label-fixed {
+                min-width: 70px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <span class="title">📝 Ciacceomoc转换器 v1.6.9</span>
+            <span class="subtitle">by Pleastar 2026.5.7 &nbsp;|&nbsp; Powered by Google Gemini & Deepseek</span>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="tab1">中文转换</button>
+            <button class="tab-btn" data-tab="tab2">正简转换</button>
+        </div>
+
+        <!-- ==================== Tab 1: 中文转换 ==================== -->
+        <div class="tab-content active" id="tab1">
+            <!-- 源文本输入 -->
+            <div class="section-label">
+                <span>📥 源文本输入 (汉字)</span>
+                <button class="btn small" id="btnTranslitMark">音译词</button>
+                <button class="btn small danger" id="btnClearTab1">清空文本</button>
+            </div>
+            <textarea class="text-editor h80" id="inputText" placeholder="在此输入中文文本..."></textarea>
+
+            <!-- 人工分词与词性编辑 -->
+            <div class="section-label">
+                <span>✏️ 人工分词与词性编辑</span>
+                <button class="btn small danger" id="btnDelPos">删除词性/阴阳性</button>
+            </div>
+            <textarea class="text-editor h120" id="posEditor" placeholder="分词结果将自动显示在此处..."></textarea>
+
+            <!-- 词性按钮行 -->
+            <div class="btn-row stretch-btns">
+                <span class="label-fixed">添加词性后缀：</span>
+                <button class="btn pos-tag-btn" data-tag="[名]">名词c</button>
+                <button class="btn pos-tag-btn" data-tag="[动]">动词s</button>
+                <button class="btn pos-tag-btn" data-tag="[形]">形容词m</button>
+                <button class="btn pos-tag-btn" data-tag="[代]">代词t</button>
+                <button class="btn pos-tag-btn" data-tag="[数]">数词st</button>
+                <button class="btn pos-tag-btn" data-tag="[量]">量词sr</button>
+                <button class="btn pos-tag-btn" data-tag="[副]">副词n</button>
+                <button class="btn pos-tag-btn" data-tag="[连]">连词r</button>
+                <button class="btn pos-tag-btn" data-tag="[介]">介词r</button>
+                <button class="btn pos-tag-btn" data-tag="[助]">助词r</button>
+                <button class="btn pos-tag-btn" data-tag="[感]">感叹词</button>
+                <button class="btn pos-tag-btn" data-tag="[拟]">拟声词</button>
+            </div>
+
+            <!-- 阴阳性按钮行 -->
+            <div class="btn-row stretch-btns">
+                <span class="label-fixed">添加阴阳性后缀：</span>
+                <button class="btn gender-tag-btn" data-tag="[阳o]">阳性o</button>
+                <button class="btn gender-tag-btn" data-tag="[阳a]">阳性a</button>
+                <button class="btn gender-tag-btn" data-tag="[阴e]">阴性e</button>
+                <button class="btn gender-tag-btn" data-tag="[阴u]">阴性u</button>
+                <button class="btn gender-tag-btn" data-tag="[中i]">中性i</button>
+            </div>
+
+            <!-- 多音字区域 -->
+            <div class="section-label">
+                <span>🔊 多音字手动选择区</span>
+                <button class="btn small" id="btnRefreshPoly">多音字筛选</button>
+            </div>
+            <div class="poly-scroll" id="polyScroll">
+                <span style="color:#999;font-size:13px;padding:20px;">点击"多音字筛选"按钮检测文本中的多音字</span>
+            </div>
+
+            <!-- 控制台 -->
+            <div class="ctrl-bar">
+                <div class="radio-group">
+                    <label><input type="radio" name="mode" value="translit" checked> 音译</label>
+                    <label><input type="radio" name="mode" value="transcrip"> 转写</label>
+                </div>
+                <div class="radio-group">
+                    <label><input type="radio" name="style" value="simp" checked> 简体</label>
+                    <label><input type="radio" name="style" value="fancy"> 正体</label>
+                </div>
+                <button class="btn accent" id="btnTranslate">✨ 转换</button>
+            </div>
+
+            <!-- 输出结果 -->
+            <div class="section-label">
+                <span>📤 输出结果</span>
+                <button class="btn small" id="btnCopyTab1">全部复制</button>
+            </div>
+            <textarea class="text-editor output-area" id="outputText" readonly placeholder="转换结果将显示在此处..." rows="8"></textarea>
+        </div>
+
+        <!-- ==================== Tab 2: 正简转换 ==================== -->
+        <div class="tab-content" id="tab2">
+            <div class="section-label">
+                <span>📥 源文本</span>
+                <button class="btn small danger" id="btnClearTab2">清空文本</button>
+            </div>
+            <textarea class="text-editor h120" id="tab2Input" placeholder="在此输入Ciacceomoc文本..."></textarea>
+
+            <div class="btn-row">
+                <button class="btn" id="btnToSimp">🔄 转换成简体</button>
+                <button class="btn" id="btnToFancy">🔄 转换成正体</button>
+            </div>
+
+            <div class="section-label">
+                <span>📤 转换结果</span>
+                <button class="btn small" id="btnCopyTab2">全部复制</button>
+            </div>
+            <textarea class="text-editor output-area" id="tab2Output" readonly placeholder="转换结果将显示在此处..." rows="8"></textarea>
+        </div>
+    </div>
+
+    <!-- Import pinyin-pro via ES module -->
+    <script type="importmap">
+        {
+            "imports": {
+                "pinyin-pro": "https://cdn.jsdelivr.net/npm/pinyin-pro@3.25.0/dist/index.mjs"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import { pinyin, segment } from 'pinyin-pro';
+
+        // ==================== 常量与映射表 ====================
+        const PUNCT_MAP = {
+            '，': ',',
+            '。': '.',
+            '！': '!',
+            '？': '?',
+            '：': ':',
+            '；': ';',
+            '“': '"',
+            '”': '"',
+            '‘': "'",
+            '’': "'",
+            '（': '(',
+            '）': ')',
+            '【': '[',
+            '】': ']',
+            '—': '-',
+            '…': '...',
+            '、': ',',
+            '《': '"',
+            '》': '"'
+        };
+
+        const POS_LABEL_TO_TAG = { "名": "n", "动": "v", "形": "a", "副": "d", "连": "c", "介": "p", "助": "u", "数": "m",
+            "量": "q", "代": "r", "感": "i", "拟": "o" };
+        const POS_TAG_TO_LABEL = {};
+        for (const [k, v] of Object.entries(POS_LABEL_TO_TAG)) { POS_TAG_TO_LABEL[v] = k; }
+
+        const POS_SUFFIX = { 'n': 'c', 'v': 's', 'a': 'm', 'd': 'n', 'c': 'r', 'p': 'r', 'u': 'r', 'm': 'st', 'q': 'sr',
+            'r': 't' };
+        const GENDER_LABEL_MAP = { "阳o": "o", "阳a": "a", "阴e": "e", "阴u": "u", "中i": "i" };
+
+        const INITIALS = { 'b': 'p', 'd': 't', 'g': 'c', 'p': 'pp', 't': 'tt', 'k': 'cc', 'm': 'm', 'n': 'n', 'z': 'sc',
+            'zh': 'cr', 'j': 'c', 'c': 'cs', 'ch': 'tr', 'q': 'cc', 'f': 'pr', 's': 's', 'sh': 'sr', 'x': 's', 'h': 'rc',
+            'l': 'r', 'r': 'rn' };
+        const FINALS_BASE = { 'a': 'a', 'o': 'o', 'e': 'e', 'i': 'i', 'u': 'u', 'ü': 'ui', 'ai': 'ae', 'ei': 'ea',
+            'ao': 'au', 'ou': 'eo', 'ia': 'ia', 'ie': 'ie', 'iao': 'io', 'iu': 'eu', 'iü': 'eu', 'ua': 'oa', 'uo': 'o',
+            'uai': 'oe', 'ui': 'oi', 'üe': 'ue', 'ue': 'ue', 'an': 'an', 'en': 'en', 'in': 'in', 'un': 'un', 'ün': 'uon',
+            'ian': 'ean', 'uan': 'oen', 'üan': 'uan', 'ang': 'aon', 'iang': 'ian', 'uang': 'oan', 'eng': 'eon',
+            'ing': 'ien', 'ueng': 'on', 'ong': 'on', 'iong': 'ion', 'er': 'er' };
+        const FINALS_234 = { 'a': 'am', 'o': 'os', 'e': 'em', 'i': 'im', 'u': 'um', 'ü': 'om', 'ai': 'ec', 'ei': 'ic',
+            'ao': 'ac', 'ou': 'oc', 'ia': 'at', 'ie': 'et', 'iao': 'ot', 'iu': 'ut', 'iü': 'ut', 'ua': 'as', 'uo': 'os',
+            'uai': 'es', 'ui': 'us', 'üe': 'is', 'ue': 'is', 'an': 'an', 'en': 'en', 'in': 'in', 'un': 'un', 'ün': 'on',
+            'ian': 'ep', 'uan': 'op', 'üan': 'ip', 'ang': 'ar', 'iang': 'ap', 'uang': 'up', 'eng': 'er', 'ing': 'ir',
+            'ueng': 'or', 'ong': 'or', 'iong': 'it', 'er': 'ur' };
+        const YW_MAP = { 'ya': 'ia', 'ye': 'ie', 'yi': 'i', 'wu': 'u', 'yu': 'ü', 'yü': 'ü', 'yue': 'ue', 'yüe': 'üe',
+            'yao': 'iao', 'you': 'iu', 'yuan': 'üan', 'yüan': 'üan', 'yin': 'in', 'yun': 'ün', 'yün': 'ün',
+            'ying': 'ing', 'yong': 'iong', 'yan': 'ian', 'yang': 'iang', 'wa': 'ua', 'wo': 'uo', 'wai': 'uai',
+            'wei': 'ui', 'wan': 'uan', 'wen': 'un', 'wang': 'uang', 'weng': 'ueng' };
+
+        // ==================== 简化的词性字典（常见词汇） ====================
+        const POS_DICT = {
+            '的': 'u',
+            '了': 'u',
+            '在': 'p',
+            '是': 'v',
+            '我': 'r',
+            '有': 'v',
+            '和': 'c',
+            '就': 'd',
+            '不': 'd',
+            '人': 'n',
+            '都': 'd',
+            '一': 'm',
+            '一个': 'm',
+            '上': 'n',
+            '也': 'd',
+            '很': 'd',
+            '到': 'v',
+            '说': 'v',
+            '要': 'v',
+            '去': 'v',
+            '你': 'r',
+            '会': 'v',
+            '着': 'u',
+            '没有': 'd',
+            '看': 'v',
+            '好': 'a',
+            '自己': 'r',
+            '这': 'r',
+            '他': 'r',
+            '她': 'r',
+            '它': 'r',
+            '们': 'u',
+            '那': 'r',
+            '什么': 'r',
+            '怎么': 'r',
+            '哪': 'r',
+            '吗': 'u',
+            '吧': 'u',
+            '呢': 'u',
+            '啊': 'i',
+            '哦': 'i',
+            '嗯': 'i',
+            '可以': 'v',
+            '能': 'v',
+            '想': 'v',
+            '知道': 'v',
+            '喜欢': 'v',
+            '爱': 'v',
+            '做': 'v',
+            '来': 'v',
+            '走': 'v',
+            '吃': 'v',
+            '喝': 'v',
+            '玩': 'v',
+            '学': 'v',
+            '写': 'v',
+            '读': 'v',
+            '听': 'v',
+            '见': 'v',
+            '让': 'v',
+            '给': 'p',
+            '把': 'p',
+            '被': 'p',
+            '从': 'p',
+            '用': 'p',
+            '对': 'p',
+            '跟': 'p',
+            '向': 'p',
+            '为': 'p',
+            '因为': 'c',
+            '所以': 'c',
+            '但是': 'c',
+            '虽然': 'c',
+            '如果': 'c',
+            '而且': 'c',
+            '或者': 'c',
+            '然后': 'c',
+            '可是': 'c',
+            '不过': 'c',
+            '只是': 'c',
+            '还是': 'c',
+            '以及': 'c',
+            '并': 'c',
+            '与': 'c',
+            '或': 'c',
+            '当': 'p',
+            '以': 'p',
+            '之': 'u',
+            '所': 'u',
+            '而': 'c',
+            '且': 'c',
+            '则': 'd',
+            '又': 'd',
+            '再': 'd',
+            '才': 'd',
+            '刚': 'd',
+            '已经': 'd',
+            '正': 'd',
+            '正在': 'd',
+            '总': 'd',
+            '总是': 'd',
+            '常': 'd',
+            '常常': 'd',
+            '非常': 'd',
+            '太': 'd',
+            '真': 'd',
+            '最': 'd',
+            '更': 'd',
+            '比较': 'd',
+            '特别': 'd',
+            '十分': 'd',
+            '大': 'a',
+            '小': 'a',
+            '多': 'a',
+            '少': 'a',
+            '高': 'a',
+            '低': 'a',
+            '长': 'a',
+            '短': 'a',
+            '快': 'a',
+            '慢': 'a',
+            '新': 'a',
+            '旧': 'a',
+            '好': 'a',
+            '坏': 'a',
+            '美': 'a',
+            '丑': 'a',
+            '冷': 'a',
+            '热': 'a',
+            '难': 'a',
+            '容易': 'a',
+            '重要': 'a',
+            '可能': 'a',
+            '应该': 'v',
+            '需要': 'v',
+            '必须': 'd',
+            '一定': 'd',
+            '也许': 'd',
+            '大概': 'd',
+            '当然': 'd',
+            '确实': 'd',
+            '其实': 'd',
+            '终于': 'd',
+            '忽然': 'd',
+            '突然': 'd',
+            '马上': 'd',
+            '立刻': 'd',
+            '一直': 'd',
+            '永远': 'd',
+            '从来': 'd',
+            '以前': 'n',
+            '以后': 'n',
+            '现在': 'n',
+            '今天': 'n',
+            '明天': 'n',
+            '昨天': 'n',
+            '早上': 'n',
+            '下午': 'n',
+            '晚上': 'n',
+            '时间': 'n',
+            '地方': 'n',
+            '世界': 'n',
+            '中国': 'n',
+            '国家': 'n',
+            '城市': 'n',
+            '学校': 'n',
+            '工作': 'n',
+            '生活': 'n',
+            '事情': 'n',
+            '问题': 'n',
+            '办法': 'n',
+            '情况': 'n',
+            '意思': 'n',
+            '东西': 'n',
+            '孩子': 'n',
+            '朋友': 'n',
+            '老师': 'n',
+            '学生': 'n',
+            '医生': 'n',
+            '先生': 'n',
+            '女士': 'n',
+            '电话': 'n',
+            '手机': 'n',
+            '电脑': 'n',
+            '汽车': 'n',
+            '房子': 'n',
+            '钱': 'n',
+            '水': 'n',
+            '火': 'n',
+            '天': 'n',
+            '地': 'n',
+            '山': 'n',
+            '河': 'n',
+            '花': 'n',
+            '树': 'n',
+            '书': 'n',
+            '门': 'n',
+            '路': 'n',
+            '手': 'n',
+            '眼': 'n',
+            '心': 'n',
+            '头': 'n',
+            '身体': 'n',
+            '食物': 'n',
+            '衣服': 'n',
+            '音乐': 'n',
+            '电影': 'n',
+            '游戏': 'n',
+            '故事': 'n',
+            '新闻': 'n',
+            '信息': 'n',
+            '照片': 'n',
+            '动物': 'n',
+            '植物': 'n',
+            '科学': 'n',
+            '技术': 'n',
+            '艺术': 'n',
+            '文化': 'n',
+            '历史': 'n',
+            '经济': 'n',
+            '政治': 'n',
+            '社会': 'n',
+            '家庭': 'n',
+            '健康': 'n',
+            '教育': 'n',
+            '研究': 'n',
+            '发展': 'v',
+            '发现': 'v',
+            '发生': 'v',
+            '开始': 'v',
+            '结束': 'v',
+            '完成': 'v',
+            '变成': 'v',
+            '感觉': 'v',
+            '觉得': 'v',
+            '认为': 'v',
+            '相信': 'v',
+            '希望': 'v',
+            '愿意': 'v',
+            '决定': 'v',
+            '准备': 'v',
+            '打算': 'v',
+            '记得': 'v',
+            '忘记': 'v',
+            '帮助': 'v',
+            '告诉': 'v',
+            '问': 'v',
+            '回答': 'v',
+            '谢谢': 'v',
+            '对不起': 'v',
+            '没关系': 'v',
+            '欢迎': 'v',
+            '介绍': 'v',
+            '认识': 'v',
+            '了解': 'v',
+            '理解': 'v',
+            '注意': 'v',
+            '关心': 'v',
+            '参加': 'v',
+            '使用': 'v',
+            '通过': 'p',
+            '经过': 'p',
+            '根据': 'p',
+            '关于': 'p',
+            '对于': 'p',
+            '为了': 'p',
+            '除了': 'p',
+            '包括': 'v',
+            '表示': 'v',
+            '成为': 'v',
+            '进行': 'v',
+            '得到': 'v',
+            '受到': 'v',
+            '感到': 'v',
+            '显得': 'v',
+            '看起来': 'v',
+            '听起来': 'v',
+            '作为': 'p',
+            '如何': 'r',
+            '这样': 'r',
+            '那样': 'r',
+            '这里': 'r',
+            '那里': 'r',
+            '哪里': 'r',
+            '谁': 'r',
+            '几': 'm',
+            '一些': 'm',
+            '许多': 'm',
+            '所有': 'r',
+            '每': 'r',
+            '各': 'r',
+            '另': 'r',
+            '同': 'a',
+            '不同': 'a',
+            '一样': 'a',
+            '似的': 'u',
+            '地': 'u',
+            '得': 'u',
+            '过': 'u',
+            '将': 'd',
+            '已': 'd',
+            '曾': 'd',
+            '未': 'd',
+            '无': 'd',
+            '非': 'd',
+            '只': 'd',
+            '仅': 'd',
+            '光': 'd',
+            '就': 'd',
+            '便': 'd',
+            '即': 'd',
+            '却': 'd',
+            '反': 'd',
+            '倒': 'd',
+            '竟': 'd',
+            '可': 'c',
+            '但': 'c',
+            '虽': 'c',
+            '若': 'c',
+            '因': 'c',
+            '故': 'c',
+            '既': 'c',
+            '然': 'c',
+            '则': 'c',
+        };
+
+        // ==================== 状态管理 ====================
+        const state = {
+            memoryPos: {}, // {word: label}  例如: {"中国": "名"}
+            memoryPy: {}, // {key: py}  例如: {"长_0": "chang2"}
+            isAutoSyncing: false,
+            inputTimer: null,
+            posTimer: null,
+        };
+
+        // ==================== DOM 元素引用 ====================
+        const $ = (sel) => document.querySelector(sel);
+        const $$ = (sel) => document.querySelectorAll(sel);
+
+        // Tab switching
+        const tabBtns = $$('.tab-btn');
+        const tabContents = $$('.tab-content');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetId = btn.dataset.tab;
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                tabContents.forEach(tc => tc.classList.remove('active'));
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
+
+        // Tab 1 elements
+        const inputText = $('#inputText');
+        const posEditor = $('#posEditor');
+        const outputText = $('#outputText');
+        const polyScroll = $('#polyScroll');
+        const btnTranslitMark = $('#btnTranslitMark');
+        const btnClearTab1 = $('#btnClearTab1');
+        const btnDelPos = $('#btnDelPos');
+        const btnRefreshPoly = $('#btnRefreshPoly');
+        const btnTranslate = $('#btnTranslate');
+        const btnCopyTab1 = $('#btnCopyTab1');
+        const modeRadios = $$('input[name="mode"]');
+        const styleRadios = $$('input[name="style"]');
+
+        // Tab 2 elements
+        const tab2Input = $('#tab2Input');
+        const tab2Output = $('#tab2Output');
+        const btnToSimp = $('#btnToSimp');
+        const btnToFancy = $('#btnToFancy');
+        const btnClearTab2 = $('#btnClearTab2');
+        const btnCopyTab2 = $('#btnCopyTab2');
+
+        // ==================== 工具函数 ====================
+        function parsePinyinStr(pyStr) {
+            const m = pyStr.toLowerCase().match(/^([a-z]+)(\d?)$/);
+            if (!m) return { syl: 'a', tone: 1 };
+            let syl = m[1];
+            const tone = m[2] ? parseInt(m[2]) : 1;
+            if (/^[jqx]/.test(syl) && syl.includes('u')) {
+                syl = syl.replace(/u/g, 'ü');
+            }
+            syl = syl.replace(/v/g, 'ü');
+            return { syl, tone };
+        }
+
+        function getPinyinForChar(char) {
+            try {
+                const result = pinyin(char, { toneType: 'num', multiple: true, v: true });
+                if (!result) return [char];
+                // result is a string, multiple readings separated by spaces
+                const readings = result.split(' ').filter(r => r.trim());
+                if (readings.length === 0) return [char];
+                return readings;
+            } catch (e) {
+                return [char];
+            }
+        }
+
+        function segmentText(text) {
+            if (!text || !text.trim()) return [];
+            try {
+                const cleanText = text.replace(/\*音\*.*?\*音译\*/g, '');
+                const mapped = [...cleanText].map(c => PUNCT_MAP[c] || c).join('');
+                if (!mapped.trim()) return [];
+                const words = segment(mapped);
+                return words.filter(w => w.trim());
+            } catch (e) {
+                // Fallback: simple character-based segmentation
+                const result = [];
+                let currentWord = '';
+                for (const char of text) {
+                    if (/[\u4e00-\u9fa5]/.test(char)) {
+                        currentWord += char;
+                    } else {
+                        if (currentWord) { result.push(currentWord);
+                            currentWord = ''; }
+                        if (char.trim()) result.push(char);
+                    }
+                }
+                if (currentWord) result.push(currentWord);
+                return result;
+            }
+        }
+
+        function getPosLabel(word) {
+            // Check memory first
+            if (state.memoryPos[word]) return state.memoryPos[word];
+            // Check dictionary
+            if (POS_DICT[word]) return POS_TAG_TO_LABEL[POS_DICT[word]] || null;
+            // Heuristic rules
+            if (word.length === 1) {
+                if (/^[零一二三四五六七八九十百千万亿]$/.test(word)) return '数';
+                if (/^[个只条张本件次回遍]$/.test(word)) return '量';
+                if (/^[的地得了着过]$/.test(word)) return '助';
+                if (/^[和与或而但虽若因故既则]$/.test(word)) return '连';
+                if (/^[在从用对被把向为以给到]$/.test(word)) return '介';
+                if (/^[我很你他她它这那哪谁]$/.test(word)) return '代';
+                if (/^[啊哦嗯哎呀哟嗨]$/.test(word)) return '感';
+                return 'n'; // default noun for single char
+            }
+            // Longer words: check last character patterns
+            const lastChar = word[word.length - 1];
+            if (['的', '了', '着', '过', '地', '得'].includes(lastChar)) return null;
+            if (['们', '子', '头', '儿', '者', '家', '员', '性', '化'].includes(lastChar)) return '名';
+            return 'n'; // default
+        }
+
+        // ==================== 自动分词处理 ====================
+        function processInputText() {
+            const text = inputText.value;
+            if (!text) {
+                if (!state.isAutoSyncing) posEditor.value = '';
+                return;
+            }
+
+            const mappedInput = [...text].map(c => PUNCT_MAP[c] || c).join('');
+            const posText = posEditor.value;
+
+            let i = 0,
+                j = 0,
+                safeI = 0,
+                safeJ = 0;
+            while (i < mappedInput.length && j < posText.length) {
+                if (posText[j] === '[') {
+                    while (j < posText.length && posText[j] !== ']') j++;
+                    if (j < posText.length) j++;
+                    safeI = i;
+                    safeJ = j;
+                    continue;
+                }
+                if (posText[j] === ' ') { j++;
+                    safeI = i;
+                    safeJ = j; continue; }
+                if (mappedInput[i] === ' ') { i++; continue; }
+                if (mappedInput[i] === posText[j]) { i++;
+                    j++; } else break;
+            }
+
+            const preservedPos = posText.substring(0, safeJ);
+            const unmatchedText = text.substring(safeI);
+
+            if (safeI === text.length && safeJ === posText.length) return;
+
+            // Split by translit markers
+            const parts = unmatchedText.split(/(\*音\*.*?\*音译\*)/g);
+            const formattedList = [];
+
+            for (const part of parts) {
+                if (!part) continue;
+                if (part.startsWith('*音*') && part.endsWith('*音译*')) {
+                    formattedList.push(part);
+                } else {
+                    const processed = [...part].map(c => PUNCT_MAP[c] || c).join('');
+                    const words = segmentText(processed);
+                    for (const w of words) {
+                        if (!/[\u4e00-\u9fa5]/.test(w)) {
+                            formattedList.push(w);
+                        } else {
+                            const lbl = getPosLabel(w);
+                            if (lbl) {
+                                formattedList.push(`${w}[${lbl}]`);
+                            } else {
+                                formattedList.push(w);
+                            }
+                        }
+                    }
+                }
+            }
+
+            let newEditorContent = formattedList.join(' ');
+            newEditorContent = newEditorContent.replace(/\s+([,.!?:;])/g, '$1');
+            newEditorContent = newEditorContent.replace(/\]\s+([,.!?:;])/g, ']$1');
+            newEditorContent = newEditorContent.replace(/([,.!?:;])(?!\s|$)/g, '$1 ');
+
+            let editorContent;
+            if (preservedPos) {
+                if (!preservedPos.endsWith(' ') && newEditorContent && !/^[\s,.!?:;"']/.test(
+                        newEditorContent)) {
+                    editorContent = preservedPos + ' ' + newEditorContent;
+                } else {
+                    editorContent = preservedPos + newEditorContent;
+                }
+            } else {
+                editorContent = newEditorContent;
+            }
+
+            state.isAutoSyncing = true;
+            posEditor.value = editorContent;
+            state.isAutoSyncing = false;
+        }
+
+        function processPosText() {
+            const rawPosText = posEditor.value;
+            const matches = rawPosText.matchAll(/([\u4e00-\u9fa5]+)\[(.*?)\]/g);
+            for (const m of matches) {
+                const word = m[1];
+                const label = m[2];
+                if (POS_LABEL_TO_TAG[label]) {
+                    state.memoryPos[word] = label;
+                }
+            }
+        }
+
+        // ==================== 多音字处理 ====================
+        function refreshPolyphones() {
+            polyScroll.innerHTML = '';
+            const text = posEditor.value;
+            const textWithoutTags = text.replace(/\[.*?\]/g, '').replace(/\*音\*/g, '').replace(/\*音译\*/g, '');
+
+            const chars = textWithoutTags.match(/[\u4e00-\u9fa5]/g) || [];
+            const charCounts = {};
+
+            let hasPoly = false;
+            for (const char of chars) {
+                const pysData = getPinyinForChar(char);
+                if (pysData.length <= 1 || pysData[0] === char) continue;
+                if (pysData.length > 1) {
+                    hasPoly = true;
+                    const count = charCounts[char] || 0;
+                    charCounts[char] = count + 1;
+                    const key = `${char}_${count}`;
+                    const selected = state.memoryPy[key] || pysData[0];
+
+                    const card = document.createElement('div');
+                    card.className = 'poly-card';
+                    card.innerHTML = `
+                        <select data-key="${key}" class="poly-select">
+                            ${pysData.map(p => `<option value="${p}" ${p === selected ? 'selected' : ''}>${p}</option>`).join('')}
+                        </select>
+                        <div class="char-display">${char}</div>
+                    `;
+                    card.querySelector('select').addEventListener('change', function() {
+                        state.memoryPy[this.dataset.key] = this.value;
+                    });
+                    polyScroll.appendChild(card);
+                }
+            }
+            if (!hasPoly) {
+                polyScroll.innerHTML =
+                    '<span style="color:#888;font-size:13px;padding:20px;">未检测到多音字 ✓</span>';
+            }
+        }
+
+        // ==================== 核心转换逻辑 ====================
+        function applyRules(word, pinyinList, mode) {
+            if (mode === 'transcrip' && word.length >= 2) {
+                const newPys = [];
+                for (let i = 0; i < word.length; i++) {
+                    if (i > 0 && word[i] === word[i - 1] && pinyinList[i] === pinyinList[i - 1]) {
+                        newPys.push('srer0');
+                    } else {
+                        newPys.push(pinyinList[i]);
+                    }
+                }
+                pinyinList = newPys;
+            }
+
+            let resWord = '';
+            const sylsData = [];
+
+            for (let i = 0; i < pinyinList.length; i++) {
+                const py = pinyinList[i];
+                if (py === 'srer0') {
+                    resWord += 'srer';
+                    sylsData.push({ c: 'sr', v: 'er' });
+                    continue;
+                }
+
+                let { syl, tone } = parsePinyinStr(py);
+                if (YW_MAP[syl]) syl = YW_MAP[syl];
+
+                let initial = '';
+                const initCandidates = ['zh', 'ch', 'sh', 'b', 'p', 'm', 'f', 'd', 't', 'n', 'l', 'g', 'k', 'h', 'j', 'q',
+                    'x', 'r', 'z', 'c', 's'
+                ];
+                for (const init of initCandidates) {
+                    if (syl.startsWith(init)) { initial = init; break; }
+                }
+                const final = syl.substring(initial.length);
+
+                let tInit, tFinal, resSyl;
+                if (initial === 'x' && final === 'i' && tone === 1) {
+                    tInit = 's';
+                    tFinal = 'ei';
+                    resSyl = 'sei';
+                    sylsData.push({ c: 's', v: 'ei' });
+                } else {
+                    tInit = INITIALS[initial] || initial;
+                    const isPureFinal = (initial === '');
+
+                    if (mode === 'translit' || tone === 1 || tone === 0) {
+                        tFinal = FINALS_BASE[final] || final;
+                        resSyl = tInit + tFinal;
+                        sylsData.push({ c: tInit, v: tFinal });
+                    } else {
+                        tFinal = FINALS_234[final] || final;
+                        const vT = { 2: 'a', 3: 'o', 4: 'e' } [tone] || '';
+                        if (isPureFinal) {
+                            resSyl = vT + tFinal.split('').reverse().join('');
+                            sylsData.push({ c: '', v: resSyl });
+                        } else {
+                            resSyl = tInit + tFinal + vT;
+                            sylsData.push({ c: tInit, v: tFinal + vT });
+                        }
+                    }
+                }
+
+                if (['pp', 'tt', 'cc', 'rc', 'rn'].includes(tInit)) {
+                    if (i === 0 || (resWord && !/[aeiouáéíóúü]$/.test(resWord))) {
+                        const prefix = { 1: 'u', 2: 'a', 3: 'o', 4: 'e', 0: 'u' } [tone] || 'u';
+                        resSyl = prefix + resSyl;
+                        if (sylsData.length > 0) {
+                            sylsData[sylsData.length - 1].v = prefix + (sylsData[sylsData.length - 1].v || '');
+                        }
+                    }
+                }
+
+                resWord += resSyl;
+            }
+
+            if (mode === 'transcrip') {
+                const pattern = /([bcdfghjklmnpqrstvwxyz]+)([aeiou]+)\1\2/g;
+                const repl4b = (match, c1, v1, offset) => {
+                    const endIdx = offset + match.length;
+                    const nextChars = resWord.substring(endIdx, endIdx + 2);
+                    if (['pp', 'tt', 'cc', 'rc', 'rn'].includes(nextChars)) return c1 + v1 + c1 + 'i';
+                    return c1 + v1 + c1 + 'u';
+                };
+                for (let iter = 0; iter < 10; iter++) {
+                    const newRes = resWord.replace(pattern, repl4b);
+                    if (newRes === resWord) break;
+                    resWord = newRes;
+                }
+            }
+
+            resWord = resWord.replace(/ii/g, 'iei');
+
+            if (mode === 'translit') {
+                if (resWord.startsWith('i')) resWord = 'h' + resWord;
+                for (const pre of ['ucc', 'acc', 'ecc', 'occ', 'cc']) {
+                    if (resWord.startsWith(pre)) {
+                        resWord = pre.replace('cc', 'k') + resWord.substring(pre.length);
+                        break;
+                    }
+                }
+            }
+
+            return resWord;
+        }
+
+        function translate() {
+            const rawText = posEditor.value;
+            const mode = document.querySelector('input[name="mode"]:checked')?.value || 'translit';
+            const style = document.querySelector('input[name="style"]:checked')?.value || 'simp';
+
+            const tokens = [];
+            const regex = /\*音\*(.*?)\*音译\*|([\u4e00-\u9fa5]+)((?:\[[^\]]*\])*)|(\s+)|([^\u4e00-\u9fa5\[\]\s]+)/g;
+            let m;
+            while ((m = regex.exec(rawText)) !== null) {
+                const translitText = m[1];
+                const chineseWord = m[2];
+                const brackets = m[3];
+                const space = m[4];
+                const other = m[5];
+                if (translitText !== undefined) {
+                    tokens.push({ type: 'translit', text: translitText });
+                } else if (chineseWord !== undefined) {
+                    let label = null;
+                    const genders = [];
+                    if (brackets) {
+                        const tags = brackets.match(/\[([^\]]*)\]/g) || [];
+                        for (const t of tags) {
+                            const inner = t.replace(/[\[\]]/g, '');
+                            if (POS_LABEL_TO_TAG[inner] && label === null) {
+                                label = inner;
+                            } else if (GENDER_LABEL_MAP[inner]) {
+                                genders.push(GENDER_LABEL_MAP[inner]);
+                            }
+                        }
+                    }
+                    tokens.push({ type: 'word', text: chineseWord, label, genders });
+                } else if (space !== undefined) {
+                    tokens.push({ type: 'space', text: space });
+                } else if (other !== undefined) {
+                    tokens.push({ type: 'other', text: other });
+                }
+            }
+
+            const finalOutput = [];
+            const charCounts = {};
+
+            for (const token of tokens) {
+                if (token.type === 'space') {
+                    finalOutput.push(token.text);
+                    continue;
+                }
+                if (token.type === 'other') {
+                    finalOutput.push(token.text);
+                    continue;
+                }
+
+                let word, label, genders, isForced;
+                if (token.type === 'translit') {
+                    word = token.text;
+                    label = null;
+                    genders = [];
+                    isForced = true;
+                } else {
+                    word = token.text;
+                    label = token.label;
+                    genders = token.genders;
+                    isForced = false;
+                }
+
+                const pys = [];
+                for (const c of word) {
+                    const pyData = getPinyinForChar(c);
+                    if (pyData.length === 0 || pyData[0] === c) {
+                        pys.push(c);
+                        continue;
+                    }
+                    const pyList = pyData;
+                    if (/[\u4e00-\u9fa5]/.test(c) && pyList.length > 1) {
+                        const count = charCounts[c] || 0;
+                        charCounts[c] = count + 1;
+                        const key = `${c}_${count}`;
+                        const py = state.memoryPy[key] || pyList[0];
+                        pys.push(py);
+                    } else {
+                        pys.push(pyList[0]);
+                    }
+                }
+
+                const currentMode = isForced ? 'translit' : mode;
+                let wordRes = applyRules(word, pys, currentMode);
+
+                let currentTag = null;
+                if (label !== null) {
+                    currentTag = POS_LABEL_TO_TAG[label];
+                    if (currentTag && POS_SUFFIX[currentTag]) {
+                        wordRes += POS_SUFFIX[currentTag];
+                    }
+                }
+                wordRes += genders.join('');
+
+                finalOutput.push({ wordStr: wordRes, posTag: currentTag, isForced });
+            }
+
+            let resultText = '';
+            let newSentence = true;
+
+            for (const item of finalOutput) {
+                if (typeof item === 'string') {
+                    resultText += item;
+                    if (/[.!?;]/.test(item.trim())) newSentence = true;
+                } else {
+                    let wordStr = item.wordStr;
+                    const posTag = item.posTag;
+                    const isForced = item.isForced;
+                    if (style === 'simp') {
+                        if (isForced || newSentence || posTag === 'n') {
+                            wordStr = wordStr.charAt(0).toUpperCase() + wordStr.slice(1);
+                        }
+                        newSentence = false;
+                    }
+                    resultText += wordStr;
+                }
+            }
+
+            if (style === 'fancy') {
+                resultText = resultText.toLowerCase();
+                const gMap = { 'i': 'ι', 'p': 'ρ', 't': 'τ', 'h': 'ε', 'k': 'κ' };
+                for (const [k, v] of Object.entries(gMap)) {
+                    resultText = resultText.split(k).join(v);
+                }
+            }
+
+            outputText.value = resultText;
+        }
+
+        // ==================== Tab 2: 正简转换 ====================
+        function convertToFancy() {
+            let text = tab2Input.value.toLowerCase();
+            const gMap = { 'i': 'ι', 'p': 'ρ', 't': 'τ', 'h': 'ε', 'k': 'κ' };
+            for (const [k, v] of Object.entries(gMap)) {
+                text = text.split(k).join(v);
+            }
+            tab2Output.value = text;
+        }
+
+        function convertToSimp() {
+            let text = tab2Input.value;
+            const gMapRev = { 'ι': 'i', 'ρ': 'p', 'τ': 't', 'ε': 'h', 'κ': 'k' };
+            for (const [k, v] of Object.entries(gMapRev)) {
+                text = text.split(k).join(v);
+            }
+
+            const tokens = text.match(/([a-zA-Z]+)|([^a-zA-Z]+)/g) || [];
+            let res = '';
+            let newSentence = true;
+
+            for (const tok of tokens) {
+                if (/^[a-zA-Z]+$/.test(tok)) {
+                    let word = tok;
+                    if (newSentence || word.toLowerCase().endsWith('c')) {
+                        word = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+                    } else {
+                        word = word.toLowerCase();
+                    }
+                    res += word;
+                    newSentence = false;
+                } else {
+                    res += tok;
+                    if (/[.!?;]/.test(tok)) newSentence = true;
+                }
+            }
+            tab2Output.value = res;
+        }
+
+        // ==================== 事件绑定 ====================
+        // Tab 1 - 输入文本变化
+        inputText.addEventListener('input', () => {
+            if (state.inputTimer) clearTimeout(state.inputTimer);
+            state.inputTimer = setTimeout(() => {
+                processInputText();
+                // Auto-refresh polyphones after input processing
+                setTimeout(refreshPolyphones, 300);
+            }, 500);
+        });
+
+        // Tab 1 - 词性编辑器变化
+        posEditor.addEventListener('input', () => {
+            if (state.isAutoSyncing) return;
+            if (state.posTimer) clearTimeout(state.posTimer);
+            state.posTimer = setTimeout(processPosText, 500);
+        });
+
+        // 音译词按钮
+        btnTranslitMark.addEventListener('click', () => {
+            const ta = inputText;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            if (start !== end) {
+                const selected = ta.value.substring(start, end);
+                const replacement = `*音*${selected}*音译*`;
+                ta.setRangeText(replacement, start, end, 'select');
+            } else {
+                const replacement = '*音**音译*';
+                ta.setRangeText(replacement, start, start, 'end');
+                ta.selectionStart = start + 3;
+                ta.selectionEnd = start + 3;
+            }
+            ta.focus();
+            ta.dispatchEvent(new Event('input'));
+        });
+
+        // 清空Tab1
+        btnClearTab1.addEventListener('click', () => {
+            inputText.value = '';
+            posEditor.value = '';
+            outputText.value = '';
+            polyScroll.innerHTML =
+                '<span style="color:#999;font-size:13px;padding:20px;">点击"多音字筛选"按钮检测文本中的多音字</span>';
+            state.memoryPos = {};
+            state.memoryPy = {};
+        });
+
+        // 删除词性标签
+        btnDelPos.addEventListener('click', () => {
+            const ta = posEditor;
+            const start = ta.selectionStart;
+            const end = ta.selectionEnd;
+            if (start === end) {
+                const textBefore = ta.value.substring(0, start);
+                const lastBracket = textBefore.lastIndexOf('[');
+                if (lastBracket !== -1) {
+                    const closeBracket = ta.value.indexOf(']', lastBracket);
+                    if (closeBracket !== -1 && closeBracket >= start) {
+                        ta.setRangeText('', lastBracket, closeBracket + 1);
+                        ta.selectionStart = lastBracket;
+                        ta.selectionEnd = lastBracket;
+                    }
+                }
+            } else {
+                ta.setRangeText('', start, end);
+            }
+            ta.focus();
+            ta.dispatchEvent(new Event('input'));
+        });
+
+        // 词性标签按钮
+        document.querySelectorAll('.pos-tag-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tag = btn.dataset.tag;
+                const ta = posEditor;
+                const start = ta.selectionStart;
+                ta.setRangeText(tag, start, start, 'end');
+                ta.selectionStart = start + tag.length;
+                ta.selectionEnd = start + tag.length;
+                ta.focus();
+                ta.dispatchEvent(new Event('input'));
+            });
+        });
+
+        // 阴阳性标签按钮
+        document.querySelectorAll('.gender-tag-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tag = btn.dataset.tag;
+                const ta = posEditor;
+                const start = ta.selectionStart;
+                ta.setRangeText(tag, start, start, 'end');
+                ta.selectionStart = start + tag.length;
+                ta.selectionEnd = start + tag.length;
+                ta.focus();
+                ta.dispatchEvent(new Event('input'));
+            });
+        });
+
+        // 多音字筛选
+        btnRefreshPoly.addEventListener('click', refreshPolyphones);
+
+        // 转换按钮
+        btnTranslate.addEventListener('click', translate);
+
+        // 复制Tab1输出
+        btnCopyTab1.addEventListener('click', () => {
+            if (outputText.value) {
+                navigator.clipboard.writeText(outputText.value).then(() => {
+                    const origText = btnCopyTab1.textContent;
+                    btnCopyTab1.textContent = '已复制!';
+                    setTimeout(() => { btnCopyTab1.textContent = origText; }, 1500);
+                }).catch(() => {
+                    outputText.select();
+                    document.execCommand('copy');
+                });
+            }
+        });
+
+        // Tab 2 - 转换按钮
+        btnToSimp.addEventListener('click', convertToSimp);
+        btnToFancy.addEventListener('click', convertToFancy);
+
+        // Tab 2 - 清空
+        btnClearTab2.addEventListener('click', () => {
+            tab2Input.value = '';
+            tab2Output.value = '';
+        });
+
+        // Tab 2 - 复制
+        btnCopyTab2.addEventListener('click', () => {
+            if (tab2Output.value) {
+                navigator.clipboard.writeText(tab2Output.value).then(() => {
+                    const origText = btnCopyTab2.textContent;
+                    btnCopyTab2.textContent = '已复制!';
+                    setTimeout(() => { btnCopyTab2.textContent = origText; }, 1500);
+                }).catch(() => {
+                    tab2Output.select();
+                    document.execCommand('copy');
+                });
+            }
+        });
+
+        // 模式/风格切换时自动重新转换
+        document.querySelectorAll('input[name="mode"], input[name="style"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                if (posEditor.value.trim() || outputText.value) {
+                    translate();
+                }
+            });
+        });
+
+        // ==================== 键盘快捷键 ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                translate();
+            }
+        });
+
+        // ==================== 初始状态 ====================
+        console.log('Ciacceomoc转换器 v1.6.9 - Web版已就绪');
+        console.log('支持功能：中文分词 | 词性标注 | 多音字选择 | 音译/转写 | 简体/正体');
+        console.log('提示：在源文本输入框中输入中文后，分词结果会自动显示在编辑区');
+        console.log('快捷键：Ctrl+Enter 执行转换');
+    </script>
+</body>
+</html>
